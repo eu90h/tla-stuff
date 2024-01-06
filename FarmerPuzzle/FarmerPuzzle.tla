@@ -2,32 +2,41 @@
 EXTENDS FiniteSets, Naturals
 VARIABLES LeftSideContents, RightSideContents, BoatContents, EmbarkSide
 
-AllObjects == {"Wolf", "Goat", "Cabbage", "Farmer"}
+W == "Wolf"
+G == "Goat"
+C == "Cabbage"
+F == "Farmer"
+L == "Left"
+R == "Right"
 
-WolfEatsGoat == \/ {"Wolf", "Goat"} \subseteq LeftSideContents /\ "Farmer" \notin LeftSideContents
-                \/ {"Wolf", "Goat"} \subseteq RightSideContents /\ "Farmer" \notin RightSideContents
+AllObjects == {W,G,C,F}
 
-GoatEatsCabbage == \/ {"Goat", "Cabbage"} \subseteq LeftSideContents /\ "Farmer" \notin LeftSideContents
-                   \/ {"Cabbage", "Goat"} \subseteq RightSideContents /\ "Farmer" \notin RightSideContents
+WolfEatsGoat == \/ {W, G} \subseteq LeftSideContents /\ F \notin LeftSideContents
+                \/ {W, G} \subseteq RightSideContents /\ F \notin RightSideContents
+
+GoatEatsCabbage == \/ {G, C} \subseteq LeftSideContents /\ F \notin LeftSideContents
+                   \/ {C, G} \subseteq RightSideContents /\ F \notin RightSideContents
 
 Safe == ~WolfEatsGoat /\ ~GoatEatsCabbage
+
+NotSolved == Cardinality(RightSideContents) < 4
 
 TypeOK == /\ Cardinality(LeftSideContents) + Cardinality(BoatContents) + Cardinality(RightSideContents) = 4
           /\ Cardinality(BoatContents) <= 2
           /\ LeftSideContents \subseteq AllObjects
           /\ BoatContents \subseteq AllObjects
           /\ RightSideContents \subseteq AllObjects
-          /\ EmbarkSide \in {"Left", "Right"}
+          /\ EmbarkSide \in {L, R}
 
 Init == /\ LeftSideContents = AllObjects
         /\ RightSideContents = {}
         /\ BoatContents = {}
-        /\ EmbarkSide = "Left"
+        /\ EmbarkSide = L
 
 PutOnBoat(obj) == /\ Safe
                   /\ Cardinality(BoatContents) = 0 \/ Cardinality(BoatContents) = 1
                   /\ BoatContents \subseteq AllObjects  
-                  /\ IF EmbarkSide = "Right" THEN 
+                  /\ IF EmbarkSide = R THEN 
                          /\ obj \in RightSideContents
                          /\ RightSideContents' = RightSideContents \ {obj}
                          /\ UNCHANGED LeftSideContents
@@ -39,21 +48,21 @@ PutOnBoat(obj) == /\ Safe
                   /\ UNCHANGED <<EmbarkSide>>
 
 Disembark == /\ Safe
-             /\ "Farmer" \in BoatContents
+             /\ F \in BoatContents
              /\ Cardinality(BoatContents) = 1 \/ Cardinality(BoatContents) = 2
              /\ BoatContents \subseteq AllObjects
              /\ BoatContents' = {}
-             /\ IF EmbarkSide = "Left" 
-                THEN /\ EmbarkSide' = "Right"
+             /\ IF EmbarkSide = L 
+                THEN /\ EmbarkSide' = R
                      /\ RightSideContents' = RightSideContents \cup BoatContents
                      /\ UNCHANGED <<LeftSideContents>>
-                ELSE /\ EmbarkSide' = "Left"
+                ELSE /\ EmbarkSide' = L
                      /\ LeftSideContents' = LeftSideContents \cup BoatContents
                      /\ UNCHANGED <<RightSideContents>>
 
-LoadFromLeft == EmbarkSide = "Left" /\ \E obj \in LeftSideContents : PutOnBoat(obj)
+LoadFromLeft == EmbarkSide = L /\ \E obj \in LeftSideContents : PutOnBoat(obj)
 
-LoadFromRight == EmbarkSide = "Right" /\ \E obj \in RightSideContents : PutOnBoat(obj)
+LoadFromRight == EmbarkSide = R /\ \E obj \in RightSideContents : PutOnBoat(obj)
 
 Next == \/ LoadFromLeft
         \/ LoadFromRight
@@ -62,5 +71,5 @@ Next == \/ LoadFromLeft
 Spec == Init /\ [][Next]_<<LeftSideContents, RightSideContents, BoatContents, EmbarkSide>>
 =============================================================================
 \* Modification History
-\* Last modified Fri Jan 05 21:35:08 EST 2024 by sca
+\* Last modified Sat Jan 06 07:56:43 EST 2024 by sca
 \* Created Fri Jan 05 19:20:32 EST 2024 by sca
