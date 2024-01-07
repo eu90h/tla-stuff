@@ -1,0 +1,2 @@
+In this problem, we have multiple independent processes who all must provide ID numbers upon client request. These ID numbers must be unique.
+This particular specification shows how the uniqueness invariant is violated if there is no state sharing between the ID generating nodes.
